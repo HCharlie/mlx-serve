@@ -1,9 +1,11 @@
 import pytest
+from pydantic import ValidationError
 from mlx_serve.api.models import (
     ChatCompletionRequest,
     ChatCompletionChunk,
     ChatCompletionResponse,
     CompletionRequest,
+    ModelInfo,
     ModelList,
     Message,
 )
@@ -60,3 +62,43 @@ def test_model_list_shape():
     ml = ModelList(data=[{"id": "my-model"}])
     assert ml.data[0].id == "my-model"
     assert ml.object == "list"
+
+
+def test_message_rejects_invalid_role():
+    with pytest.raises(ValidationError):
+        Message(role="dragon", content="x")
+
+
+def test_chat_completion_response_shape():
+    resp = ChatCompletionResponse(
+        id="chatcmpl-abc",
+        created=1234567890,
+        model="test-model",
+        choices=[{
+            "message": {"role": "assistant", "content": "hello"},
+            "finish_reason": "stop",
+        }],
+    )
+    assert resp.object == "chat.completion"
+    assert resp.choices[0].finish_reason == "stop"
+    assert resp.choices[0].message.content == "hello"
+
+
+def test_model_info_defaults():
+    info = ModelInfo(id="my-model")
+    assert info.object == "model"
+    assert info.created == 0
+    assert info.owned_by == "local"
+
+
+def test_completion_request_accepts_generation_params():
+    req = CompletionRequest(
+        model="test-model",
+        prompt="hello",
+        temperature=0.3,
+        top_p=0.95,
+        max_tokens=128,
+    )
+    assert req.temperature == 0.3
+    assert req.top_p == 0.95
+    assert req.max_tokens == 128

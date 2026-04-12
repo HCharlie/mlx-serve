@@ -11,6 +11,7 @@ class ChatCompletionRequest(BaseModel):
     model: str
     messages: list[Message]
     stream: bool = False
+    # Keep these defaults in sync with Engine.generate() defaults in engine.py
     max_tokens: int = 512
     temperature: float = 0.7
     top_p: float = 0.9
@@ -20,13 +21,14 @@ class CompletionRequest(BaseModel):
     model: str
     prompt: str
     stream: bool = False
+    # Keep these defaults in sync with Engine.generate() defaults in engine.py
     max_tokens: int = 512
     temperature: float = 0.7
     top_p: float = 0.9
 
 
 class ChatDelta(BaseModel):
-    role: Optional[str] = None
+    role: Optional[Literal["system", "user", "assistant"]] = None
     content: Optional[str] = None
 
 
