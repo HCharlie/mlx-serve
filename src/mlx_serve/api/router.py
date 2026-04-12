@@ -3,7 +3,7 @@ import time
 import uuid
 from typing import AsyncGenerator
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 
 from mlx_serve.api.models import (
@@ -63,7 +63,7 @@ async def health(request: Request):
     return {
         "status": "ok",
         "model": engine.model_path,
-        "queue_depth": engine._job_queue.qsize(),
+        "queue_depth": engine.queue_depth,
     }
 
 
@@ -78,12 +78,15 @@ async def chat_completions(body: ChatCompletionRequest, request: Request):
             add_generation_prompt=True,
         )
     except Exception:
-        raise HTTPException(
+        return JSONResponse(
             status_code=400,
-            detail=(
-                "This model has no chat template. "
-                "Use /v1/completions with a raw prompt instead."
-            ),
+            content={
+                "error": {
+                    "message": "This model has no chat template. Use /v1/completions with a raw prompt instead.",
+                    "type": "invalid_request_error",
+                    "code": 400,
+                }
+            },
         )
 
     token_gen = engine.generate(

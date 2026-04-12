@@ -23,8 +23,7 @@ def app():
     mock_engine.tokenizer = MagicMock()
     mock_engine.tokenizer.apply_chat_template.return_value = "<prompt>"
     mock_engine.generate = mock_generate
-    mock_engine._job_queue = MagicMock()
-    mock_engine._job_queue.qsize.return_value = 0
+    mock_engine.queue_depth = 0
 
     app.state.engine = mock_engine
     return app
@@ -104,6 +103,9 @@ def test_chat_completions_no_template_returns_400(client, app):
         },
     )
     assert resp.status_code == 400
+    data = resp.json()
+    assert "error" in data
+    assert data["error"]["code"] == 400
 
 
 def test_completions_non_streaming(client):
@@ -134,3 +136,20 @@ def test_generation_error_returns_openai_error_format(client, app):
     data = resp.json()
     assert "error" in data
     assert "message" in data["error"]
+
+
+def test_completions_streaming(client):
+    resp = client.post(
+        "/v1/completions",
+        json={"model": "test-model", "prompt": "once upon", "stream": True},
+    )
+    assert resp.status_code == 200
+    assert "text/event-stream" in resp.headers["content-type"]
+    lines = [l for l in resp.text.splitlines() if l.startswith("data:")]
+    assert lines[-1] == "data: [DONE]"
+    content_lines = lines[:-1]
+    assert len(content_lines) == 2
+    for line in content_lines:
+        chunk = json.loads(line[len("data: "):])
+        assert chunk["object"] == "text_completion"
+        assert "text" in chunk["choices"][0]

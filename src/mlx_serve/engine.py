@@ -35,6 +35,11 @@ class Engine:
         if self._worker_task:
             self._worker_task.cancel()
 
+    @property
+    def queue_depth(self) -> int:
+        """Number of requests currently waiting in the job queue."""
+        return self._job_queue.qsize()
+
     async def _worker(self) -> None:
         """
         Pulls one inference request at a time from the job queue.
