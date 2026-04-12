@@ -4,7 +4,6 @@ from mlx_serve.api.models import (
     ChatCompletionRequest,
     ChatCompletionChunk,
     ChatCompletionResponse,
-    CompletionRequest,
     ModelInfo,
     ModelList,
     Message,
@@ -40,11 +39,6 @@ def test_chat_request_accepts_generation_params():
     assert req.top_p == 0.8
     assert req.max_tokens == 256
 
-
-def test_completion_request_parses():
-    req = CompletionRequest(model="test-model", prompt="once upon a time")
-    assert req.prompt == "once upon a time"
-    assert req.stream is False
 
 
 def test_chat_completion_chunk_shape():
@@ -91,14 +85,3 @@ def test_model_info_defaults():
     assert info.owned_by == "local"
 
 
-def test_completion_request_accepts_generation_params():
-    req = CompletionRequest(
-        model="test-model",
-        prompt="hello",
-        temperature=0.3,
-        top_p=0.95,
-        max_tokens=128,
-    )
-    assert req.temperature == 0.3
-    assert req.top_p == 0.95
-    assert req.max_tokens == 128

@@ -1,4 +1,3 @@
-import json
 import time
 import uuid
 from typing import AsyncGenerator
@@ -13,7 +12,6 @@ from mlx_serve.api.models import (
     ChatChoiceFull,
     ChatChoiceChunk,
     ChatDelta,
-    CompletionRequest,
     Message,
     ModelInfo,
     ModelList,
@@ -120,31 +118,3 @@ async def chat_completions(body: ChatCompletionRequest, request: Request):
             ChatChoiceFull(message=Message(role="assistant", content=content))
         ],
     )
-
-
-@router.post("/v1/completions")
-async def completions(body: CompletionRequest, request: Request):
-    engine = _get_engine(request)
-    token_gen = engine.generate(
-        body.prompt,
-        max_tokens=body.max_tokens,
-        temperature=body.temperature,
-        top_p=body.top_p,
-    )
-    req_id = f"cmpl-{uuid.uuid4().hex}"
-
-    if body.stream:
-        async def sse():
-            async for token in token_gen:
-                yield f"data: {json.dumps({'id': req_id, 'object': 'text_completion', 'choices': [{'text': token, 'index': 0}]})}\n\n"
-            yield "data: [DONE]\n\n"
-        return StreamingResponse(sse(), media_type="text/event-stream")
-
-    tokens = [t async for t in token_gen]
-    return {
-        "id": req_id,
-        "object": "text_completion",
-        "created": int(time.time()),
-        "model": body.model,
-        "choices": [{"text": "".join(tokens), "index": 0, "finish_reason": "stop"}],
-    }

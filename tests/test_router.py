@@ -1,5 +1,6 @@
 import json
 import pytest
+
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from unittest.mock import MagicMock
@@ -108,16 +109,6 @@ def test_chat_completions_no_template_returns_400(client, app):
     assert data["error"]["code"] == 400
 
 
-def test_completions_non_streaming(client):
-    resp = client.post(
-        "/v1/completions",
-        json={"model": "test-model", "prompt": "once upon", "stream": False},
-    )
-    assert resp.status_code == 200
-    data = resp.json()
-    assert data["choices"][0]["text"] == "Hello world"
-
-
 def test_generation_error_returns_openai_error_format(client, app):
     async def failing_generate(*args, **kwargs):
         raise RuntimeError("GPU out of memory")
@@ -138,18 +129,3 @@ def test_generation_error_returns_openai_error_format(client, app):
     assert "message" in data["error"]
 
 
-def test_completions_streaming(client):
-    resp = client.post(
-        "/v1/completions",
-        json={"model": "test-model", "prompt": "once upon", "stream": True},
-    )
-    assert resp.status_code == 200
-    assert "text/event-stream" in resp.headers["content-type"]
-    lines = [l for l in resp.text.splitlines() if l.startswith("data:")]
-    assert lines[-1] == "data: [DONE]"
-    content_lines = lines[:-1]
-    assert len(content_lines) == 2
-    for line in content_lines:
-        chunk = json.loads(line[len("data: "):])
-        assert chunk["object"] == "text_completion"
-        assert "text" in chunk["choices"][0]
