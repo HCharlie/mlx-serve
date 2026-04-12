@@ -36,6 +36,18 @@ async def health(request: Request):
 async def chat_completions(body: ChatCompletionRequest, request: Request):
     engine = _get_engine(request)
 
+    if body.stream:
+        return JSONResponse(
+            status_code=501,
+            content={
+                "error": {
+                    "message": "Streaming is not yet implemented.",
+                    "type": "not_implemented",
+                    "code": 501,
+                }
+            },
+        )
+
     try:
         prompt = engine.tokenizer.apply_chat_template(
             [m.model_dump() for m in body.messages],

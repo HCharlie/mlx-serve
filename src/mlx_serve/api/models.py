@@ -10,6 +10,7 @@ class Message(BaseModel):
 class ChatCompletionRequest(BaseModel):
     model: str
     messages: list[Message]
+    stream: bool = False
     max_tokens: int = 512
     temperature: float = 0.7
     top_p: float = 0.9

@@ -59,6 +59,15 @@ def test_chat_completions(client):
     assert data["choices"][0]["finish_reason"] == "stop"
 
 
+def test_chat_completions_stream_returns_501(client):
+    resp = client.post(
+        "/v1/chat/completions",
+        json={"model": "test-model", "messages": [{"role": "user", "content": "hi"}], "stream": True},
+    )
+    assert resp.status_code == 501
+    assert resp.json()["error"]["code"] == 501
+
+
 def test_chat_completions_no_template_returns_400(client, app):
     app.state.engine.tokenizer.apply_chat_template.side_effect = Exception("no template")
     resp = client.post(
