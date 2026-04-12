@@ -30,7 +30,11 @@ def cli():
     parser = argparse.ArgumentParser(
         description="Serve a local LLM via an OpenAI-compatible API using MLX."
     )
-    parser.add_argument("--model", required=True, help="HuggingFace repo ID or local path")
+    parser.add_argument(
+        "--model",
+        default="mlx-community/Llama-3.2-3B-Instruct-4bit",
+        help="HuggingFace repo ID or local path (default: mlx-community/Llama-3.2-3B-Instruct-4bit)",
+    )
     parser.add_argument("--host", default="127.0.0.1", help="Bind address (default: 127.0.0.1)")
     parser.add_argument("--port", type=int, default=8080, help="Port (default: 8080)")
     args = parser.parse_args()
