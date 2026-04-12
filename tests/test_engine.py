@@ -56,7 +56,7 @@ async def test_engine_generate_yields_tokens(mock_mlx):
 
 
 @pytest.mark.asyncio
-async def test_engine_serializes_requests(mock_mlx):
+async def test_engine_serializes_requests(mock_mlx, monkeypatch):
     """
     Two concurrent generate() calls must both complete.
     Serialization is verified by tracking which request the worker is
@@ -69,8 +69,7 @@ async def test_engine_serializes_requests(mock_mlx):
         yield make_mock_token("tok")
         order.append(f"end:{prompt}")
 
-    import mlx_serve.engine as eng_mod
-    eng_mod.stream_generate = tracking_generate
+    monkeypatch.setattr("mlx_serve.engine.stream_generate", tracking_generate)
 
     engine = Engine("fake/model")
     await engine.start()
