@@ -66,42 +66,21 @@ from openai import OpenAI
 
 client = OpenAI(base_url="http://127.0.0.1:8080/v1", api_key="ignored")
 
-# Chat
 response = client.chat.completions.create(
     model="mlx-community/Llama-3.2-3B-Instruct-4bit",
     messages=[{"role": "user", "content": "Hello!"}],
 )
 print(response.choices[0].message.content)
-
-# Streaming
-stream = client.chat.completions.create(
-    model="mlx-community/Llama-3.2-3B-Instruct-4bit",
-    messages=[{"role": "user", "content": "Tell me a joke."}],
-    stream=True,
-)
-for chunk in stream:
-    if chunk.choices[0].delta.content:
-        print(chunk.choices[0].delta.content, end="", flush=True)
 ```
 
 ### curl
 
 ```bash
-# Chat completions
 curl http://127.0.0.1:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "mlx-community/Llama-3.2-3B-Instruct-4bit",
     "messages": [{"role": "user", "content": "Hello!"}]
-  }'
-
-# Streaming
-curl -N http://127.0.0.1:8080/v1/chat/completions \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "mlx-community/Llama-3.2-3B-Instruct-4bit",
-    "messages": [{"role": "user", "content": "Hello!"}],
-    "stream": true
   }'
 ```
 
@@ -113,10 +92,9 @@ All endpoints follow the OpenAI REST API format.
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `POST` | `/v1/chat/completions` | Chat (streaming or non-streaming) |
-| `POST` | `/v1/completions` | Raw text completion |
+| `POST` | `/v1/chat/completions` | Chat completion |
 | `GET` | `/v1/models` | List loaded model |
-| `GET` | `/health` | Server status and queue depth |
+| `GET` | `/health` | Server status |
 
 ### Request parameters
 
@@ -124,7 +102,6 @@ All endpoints follow the OpenAI REST API format.
 |-----------|------|---------|-------------|
 | `model` | string | — | Model name (must match the running model) |
 | `messages` | array | — | Chat messages with `role` and `content` |
-| `stream` | boolean | `false` | Stream tokens via SSE |
 | `max_tokens` | integer | `512` | Maximum tokens to generate |
 | `temperature` | float | `0.7` | Sampling temperature (0 = deterministic) |
 | `top_p` | float | `0.9` | Nucleus sampling threshold |
@@ -150,12 +127,10 @@ All models below are 4-bit quantized and available on HuggingFace under [mlx-com
 One process. Three components:
 
 1. **FastAPI** handles HTTP requests
-2. **Engine** serializes inference through an asyncio queue — one request runs at a time
+2. **Engine** serializes inference via an asyncio semaphore — one request runs at a time
 3. **mlx-lm** does the actual inference on Apple Silicon via Metal GPU
 
-The queue means multiple concurrent clients (several Claude Code sessions, a script, and a browser tab) all get served without errors — they just wait their turn. On an M4 Pro at ~100 tok/s, the wait is rarely noticeable.
-
-Streaming uses [Server-Sent Events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events) (SSE), the same format as the OpenAI API.
+The semaphore means multiple concurrent clients all get served without errors — they just wait their turn. On an M4 Pro at ~100 tok/s, the wait is rarely noticeable.
 
 ---
 
