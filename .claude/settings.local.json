@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:arxiv.org)",
+      "WebFetch(domain:medium.com)",
+      "WebFetch(domain:blog.starmorph.com)",
+      "WebFetch(domain:antekapetanovic.com)",
+      "Bash(python3 -c \"import mlx_lm; help\\(mlx_lm.stream_generate\\)\")",
+      "Bash(python3 -c \"import mlx_lm; print\\(dir\\(mlx_lm\\)\\)\")",
+      "WebFetch(domain:deepwiki.com)",
+      "Skill(cost-history)",
+      "Bash(~/.devbox/ai/claude/bun x:*)",
+      "Bash(grep -E \"Total|^\\\\s*$\")",
+      "Bash(find /Users/changlihan/src/github.com/HCharlie/mlx_serve -type f -name *.py)",
+      "Bash(uv init:*)",
+      "Bash(uv sync:*)",
+      "Bash(git commit:*)",
+      "Bash(uv run:*)",
+      "Bash(uv tool:*)",
+      "Bash(curl -s http://127.0.0.1:8080/health)",
+      "Bash(python3 -m json.tool echo \"\" echo \"=== /v1/models ===\")",
+      "Bash(curl -s http://127.0.0.1:8080/v1/models)",
+      "Bash(python3 -m json.tool)",
+      "Bash(curl -s http://127.0.0.1:8080/v1/chat/completions -H \"Content-Type: application/json\" -d '{:*)",
+      "Bash(git push:*)",
+      "Bash(xargs kill:*)"
+    ]
+  }
+}

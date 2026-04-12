@@ -1,4 +1,4 @@
-from typing import Literal, Optional
+from typing import Literal
 from pydantic import BaseModel
 
 
@@ -10,31 +10,9 @@ class Message(BaseModel):
 class ChatCompletionRequest(BaseModel):
     model: str
     messages: list[Message]
-    stream: bool = False
-    # Keep these defaults in sync with Engine.generate() defaults in engine.py
     max_tokens: int = 512
     temperature: float = 0.7
     top_p: float = 0.9
-
-
-
-class ChatDelta(BaseModel):
-    role: Optional[Literal["system", "user", "assistant"]] = None
-    content: Optional[str] = None
-
-
-class ChatChoiceChunk(BaseModel):
-    index: int = 0
-    delta: ChatDelta
-    finish_reason: Optional[str] = None
-
-
-class ChatCompletionChunk(BaseModel):
-    id: str
-    object: str = "chat.completion.chunk"
-    created: int
-    model: str
-    choices: list[ChatChoiceChunk]
 
 
 class ChatChoiceFull(BaseModel):
