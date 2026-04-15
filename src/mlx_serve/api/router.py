@@ -17,6 +17,7 @@ router = APIRouter()
 
 
 def _get_engine(request: Request):
+    # FastAPI stores shared state on app.state — set once at startup in main.py
     return request.app.state.engine
 
 

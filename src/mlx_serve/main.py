@@ -10,7 +10,7 @@ from mlx_serve.engine import Engine
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Load the model on startup, clean up on shutdown."""
+    """FastAPI lifespan: code before yield runs on startup, after yield on shutdown."""
     engine: Engine = app.state.engine
     print(f"Loading model: {engine.model_path} ...")
     await engine.start()

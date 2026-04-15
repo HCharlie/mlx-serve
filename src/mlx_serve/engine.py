@@ -9,7 +9,7 @@ class Engine:
         self.model_path = model_path
         self.model = None
         self.tokenizer = None
-        self._sem = asyncio.Semaphore(1)
+        self._gpu_lock = asyncio.Semaphore(1)  # one generation at a time
 
     async def start(self) -> None:
         self.model, self.tokenizer = load(self.model_path)
@@ -34,5 +34,9 @@ class Engine:
                 tokens.append(response.text)
             return "".join(tokens)
 
-        async with self._sem:
+        # stream_generate() is synchronous and blocks its thread.
+        # asyncio.to_thread() offloads it to a thread pool so the event loop
+        # stays free to accept other requests while this one runs.
+        # The lock ensures only one generation runs at a time (single GPU).
+        async with self._gpu_lock:
             return await asyncio.to_thread(_run)
